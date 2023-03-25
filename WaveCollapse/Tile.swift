@@ -17,12 +17,13 @@ struct Tile: View {
      ]
     var body: some View {
         if let collapsed {
-            Text(String(data[collapsed].text ?? "nil"))
-                .font(Font.largeTitle)
+            Image(systemName: data[collapsed].text + ".circle")
+                .resizable()
+                .frame(width: 50, height: 50)
         }
         LazyVGrid(columns: columns, spacing: 20) {
              ForEach(data) { item in
-                 Text(item.text ?? "nil")
+                 Image(systemName: item.text + ".circle")
              }
          }
          .padding(.horizontal)
@@ -38,14 +39,14 @@ struct Tile: View {
 
 struct Tile_Previews: PreviewProvider {
     static var previews: some View {
-        Tile(data: demoArray, collapsed: nil)
+        Tile(data: demoArray, collapsed: 3)
     }
 }
 
 struct GridData: Identifiable {
     let id = UUID()
     let number: Int? = nil
-    let text: String?
+    let text: String
     let image: Image? = nil
 }
 
