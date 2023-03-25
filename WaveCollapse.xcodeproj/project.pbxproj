@@ -11,6 +11,9 @@
 		2246A7BE29CEB73F00F85C92 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2246A7BD29CEB73F00F85C92 /* ContentView.swift */; };
 		2246A7C029CEB74000F85C92 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2246A7BF29CEB74000F85C92 /* Assets.xcassets */; };
 		2246A7C329CEB74000F85C92 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2246A7C229CEB74000F85C92 /* Preview Assets.xcassets */; };
+		2246A7CA29CEB75A00F85C92 /* Tile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2246A7C929CEB75A00F85C92 /* Tile.swift */; };
+		2246A7CC29CEC31300F85C92 /* GridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2246A7CB29CEC31300F85C92 /* GridView.swift */; };
+		225776F129CF4C4E00ECD87A /* Logic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225776F029CF4C4E00ECD87A /* Logic.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +22,9 @@
 		2246A7BD29CEB73F00F85C92 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2246A7BF29CEB74000F85C92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2246A7C229CEB74000F85C92 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		2246A7C929CEB75A00F85C92 /* Tile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tile.swift; sourceTree = "<group>"; };
+		2246A7CB29CEC31300F85C92 /* GridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridView.swift; sourceTree = "<group>"; };
+		225776F029CF4C4E00ECD87A /* Logic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +59,9 @@
 			children = (
 				2246A7BB29CEB73F00F85C92 /* WaveCollapseApp.swift */,
 				2246A7BD29CEB73F00F85C92 /* ContentView.swift */,
+				2246A7C929CEB75A00F85C92 /* Tile.swift */,
+				2246A7CB29CEC31300F85C92 /* GridView.swift */,
+				225776F029CF4C4E00ECD87A /* Logic.swift */,
 				2246A7BF29CEB74000F85C92 /* Assets.xcassets */,
 				2246A7C129CEB74000F85C92 /* Preview Content */,
 			);
@@ -137,7 +146,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2246A7CA29CEB75A00F85C92 /* Tile.swift in Sources */,
+				225776F129CF4C4E00ECD87A /* Logic.swift in Sources */,
 				2246A7BE29CEB73F00F85C92 /* ContentView.swift in Sources */,
+				2246A7CC29CEC31300F85C92 /* GridView.swift in Sources */,
 				2246A7BC29CEB73F00F85C92 /* WaveCollapseApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
