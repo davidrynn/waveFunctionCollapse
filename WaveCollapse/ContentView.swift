@@ -8,14 +8,27 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var numberOfColumns: String = "0"
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        NavigationStack {
+            VStack(alignment: .center) {
+                Text("Enter number of data points:")
+                TextField("Grid Width", text: $numberOfColumns)
+                    .fixedSize()
+                NavigationLink("Grid") {
+                    navLink
+                }
+            }
+            
         }
-        .padding()
+    }
+    
+    @ViewBuilder
+    var navLink: some View {
+        if let number = Int(numberOfColumns) {
+            GridView()
+                .environmentObject(Logic(numberOfTiles: number))
+        }
     }
 }
 
