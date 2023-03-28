@@ -41,7 +41,7 @@ enum TileType: Int, CaseIterable {
     case down = 3
     case left = 4
     
-    var rule: SideRule {
+    var rule: SideRule<TileType> {
         switch self {
             
         case .blank:
@@ -77,13 +77,15 @@ enum TileType: Int, CaseIterable {
     }
 }
 
-struct SideRule: Equatable {
-    let upSide: [TileType]
-    let rightSide: [TileType]
-    let downSide: [TileType]
-    let leftSide: [TileType]
+//TODO: Make more generic, potentially just an array, so it could have variable amount of sides
+// Is there a way of setting the size of an array
+struct SideRule<T: Equatable>: Equatable {
+    let upSide: [T]
+    let rightSide: [T]
+    let downSide: [T]
+    let leftSide: [T]
     
-    func getRule(_ direction: Direction) -> [TileType] {
+    func getRule(_ direction: Direction) -> [T] {
         switch direction {
             
         case .down: return downSide
@@ -129,7 +131,7 @@ final class Logic: ObservableObject {
         canUndo = true
         guard numberOfTiles > 0 else { return [] }
         var data = grids
-        //start off 
+        //start off
         data[0].options = [TileType.left]
         
         if let least = indexOfCollaspible(data) {
