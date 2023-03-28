@@ -12,21 +12,19 @@ struct GridView: View {
     var columns: [GridItem] {
         var array: [GridItem] = []
         for _ in 0..<logic.numberOfColumns {
-            array.append(GridItem(.flexible()))
+            array.append(GridItem(.fixed(25.0)))
         }
         return array
     }
     var body: some View {
         VStack {
-            Grid {
+            Grid(alignment: .center, horizontalSpacing: 1.0, verticalSpacing: 1.0) {
                 ForEach(0..<logic.numberOfColumns, id: \.self){ i in
                     GridRow {
                         ForEach(0..<logic.numberOfColumns, id: \.self){ j in
                             let adj = (i * logic.numberOfColumns) + j
                             let grid = logic.grids[adj]
-                            if adj == 3 {
-                                
-                            }
+
                             if let index = grid.options.first, grid.collapsed {
                                 logic.images[index.rawValue]
                                     .resizable()
@@ -45,10 +43,27 @@ struct GridView: View {
                 }
             }
             .padding(.horizontal)
-            Button {
-                logic.reload()
-            } label: {
-                Text("Reset")
+            HStack {
+                Button {
+                    logic.reload()
+                } label: {
+                    Text("Iterate")
+                }
+                .padding()
+                Button {
+                    logic.reset()
+                } label: {
+                    Text("Reset")
+                }
+                .padding()
+                if logic.canUndo {
+                    Button {
+                        logic.undo()
+                    } label: {
+                        Text("Undo")
+                    }
+                    .padding()
+                }
             }
 
         }
@@ -57,6 +72,6 @@ struct GridView: View {
 
 struct GridView_Previews: PreviewProvider {
     static var previews: some View {
-        GridView().environmentObject(Logic(numberOfTiles: 3))
+        GridView().environmentObject(Logic(numberOfColumns: 3))
     }
 }

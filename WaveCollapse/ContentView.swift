@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var numberOfColumns: String = "0"
+    @State var numberOfColumns: String = "5"
     var body: some View {
         NavigationStack {
             VStack(alignment: .center) {
-                Text("Enter number of data points:")
+                Text("Enter number of columns: ")
                 TextField("Grid Width", text: $numberOfColumns)
                     .fixedSize()
+                    .keyboardType(.numberPad)
                 NavigationLink("Grid") {
                     navLink
                 }
@@ -27,7 +28,7 @@ struct ContentView: View {
     var navLink: some View {
         if let number = Int(numberOfColumns) {
             GridView()
-                .environmentObject(Logic(numberOfTiles: number))
+                .environmentObject(Logic(numberOfColumns: number))
         }
     }
 }

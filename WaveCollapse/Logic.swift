@@ -8,17 +8,30 @@
 import Foundation
 import SwiftUI
 
-enum Direction {
+enum Direction: CaseIterable {
+    
     case left, right, up, down
     
-    func index(_ i: Int, columns: Int) -> Int {
+    func relativeIndex(_ i: Int, columns: Int) -> Int? {
+        let roundedRowNumber = (i / columns)
+        let beginningOfRow = roundedRowNumber * columns
+        let endOfRow = beginningOfRow + columns - 1
         switch self {
-        case .down: return i - columns
-        case .left: return i - 1
-        case .right: return i + 1
-        case .up: return columns + i
+        case .down:
+            let j = columns + i
+            return j < columns*columns ? j : nil
+        case .left:
+            let j = i - 1
+            return j >= beginningOfRow ? j : nil
+        case .right:
+            let j = i + 1
+            return j <= endOfRow ? j : nil
+        case .up:
+            let j = i - columns
+            return j > 0 ? j : nil
         }
     }
+    
 }
 
 enum TileType: Int, CaseIterable {
@@ -71,21 +84,33 @@ struct SideRule: Equatable {
     let rightSide: [TileType]
     let downSide: [TileType]
     let leftSide: [TileType]
+    
+    func getRule(_ direction: Direction) -> [TileType] {
+        switch direction {
+            
+        case .down: return downSide
+        case .left: return leftSide
+        case .right: return rightSide
+        case .up: return upSide
+        }
+    }
 }
 
 final class Logic: ObservableObject {
-    var numberOfColumns: Int {
-        return Int(sqrt(Double(grids.count)).rounded(.towardZero))
-    }
+    var numberOfColumns: Int
     
+    private var previous: [GridData] = []
+    var canUndo: Bool = false
     
     @Published var grids: [GridData] = []
     
     var images: [Image]
-    var numberOfTiles: Int
+    var numberOfTiles: Int {
+        return numberOfColumns * numberOfColumns
+    }
     
-    init(numberOfTiles: Int) {
-        self.numberOfTiles = numberOfTiles
+    init(numberOfColumns: Int) {
+        self.numberOfColumns = numberOfColumns
         self.images = [
             Image("blank"),
             Image("up"),
@@ -102,11 +127,12 @@ final class Logic: ObservableObject {
     }
     
     private func load() -> [GridData] {
+        previous = grids
+        canUndo = true
         guard numberOfTiles > 0 else { return [] }
         var data = grids
         if data.count > 24 {
             data[3].options = [TileType.left]
-            data[20].options = [TileType.right]
         }
         //
         
@@ -118,6 +144,7 @@ final class Logic: ObservableObject {
         data = update(gridDatas: data)
         return data
     }
+    
     private func indexOfCollaspible(_ data: [GridData]) -> Int? {
         var shortestIds = data.filter { $0.options.count == 2}.map { $0.id }
         if shortestIds.isEmpty {
@@ -128,66 +155,39 @@ final class Logic: ObservableObject {
         return randomId
     }
     
-    func reload() {
-        self.grids = load()
-    }
-    
-    func update(gridDatas: [GridData]) -> [GridData] {
+    private func update(gridDatas: [GridData]) -> [GridData] {
         guard !gridDatas.isEmpty else { return [] }
             var data = gridDatas
             for i in data.indices {
-                let grid = data[i]
-                //check up
-                let up = i - numberOfColumns
-                if up > 0 {
-                    let upOptions = grid.options.map { option in
-                        return option.rule.upSide
-                    }
-                    var flat = Array(upOptions.joined())
-                    data[up].options = Array(Set(flat).intersection(Set(data[up].options)))
-                    
-                }
-                //down
-                let down = i + numberOfColumns
-                if down < data.count {
-                    let downOptions = grid.options.map { option in
-                        return option.rule.downSide
-                    }
-                    var flat = Array(downOptions.joined())
-                    data[down].options = Array(Set(flat).intersection(Set(data[down].options)))
-                }
-                // right
-                let right = i + 1
-                let roundedRowNumber = (i / numberOfColumns)
-                let beginningOfRow = roundedRowNumber * numberOfColumns
-                let endOfRow = beginningOfRow + numberOfColumns - 1
-                if right <= endOfRow {
-                    let rightOptions = grid.options.map { option in
-                        return option.rule.rightSide
-                    }
-                    var flat = Array(rightOptions.joined())
-                    data[right].options = Array(Set(flat).intersection(Set(data[right].options)))
-                }
-                // left
-                let left = i - 1
-                if left >= beginningOfRow {
-                    let flat = getOptions(grid.options, direction: .left)
-                    data[left].options = Array(Set(flat).intersection(Set(data[left].options)))
-                }
-                if i == 3 || i == 9 {
-                    
-                }
+                updateAdjacentTile(data: &data, i: i)
             }
         return data
     }
     
-    //takes index and data and get's the right options
+    private func updateAdjacentTile(data: inout [GridData], i: Int) {
+        for direction in Direction.allCases {
+            if let j = direction.relativeIndex(i, columns: numberOfColumns){
+                let dirOptions = data[i].options.map { option in
+                    return option.rule.getRule(direction)
+                }
+                let flat = Set(dirOptions.joined())
+                let jSet = Set(data[j].options)
+                // if options are the same, no need to update
+                if flat == jSet { return }
+                
+                let newOptions = Array(flat.intersection(jSet))
+                data[j].options = newOptions
+            }
+        }
+    }
     
+    //takes index and data and get's the correct options
     private func getOptions(_ options: [TileType], direction: Direction) -> [TileType] {
         
         let directionOptions = options.map { option in
             switch direction {
             case .left:
+                
                 return option.rule.leftSide
             case .right:
                 return option.rule.rightSide
@@ -201,6 +201,21 @@ final class Logic: ObservableObject {
     }
     
     
+}
+// MARK: Public Functions
+extension Logic {
+    func reload() {
+        self.grids = load()
+    }
+    
+    func reset() {
+        self.firstLoad()
+    }
+    
+    func undo() {
+        canUndo = false
+        self.grids = previous
+    }
 }
 
 struct GridData {
