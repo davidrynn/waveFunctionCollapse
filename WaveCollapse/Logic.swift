@@ -31,7 +31,7 @@ enum Direction: CaseIterable {
             return j > 0 ? j : nil
         }
     }
-    
+
 }
 
 enum TileType: Int, CaseIterable {
@@ -76,9 +76,7 @@ enum TileType: Int, CaseIterable {
         }
     }
 }
-    
-    // TileMiddle: tile up from, TileUpFrom.options = TileMiddle.upSide
-    
+
 struct SideRule: Equatable {
     let upSide: [TileType]
     let rightSide: [TileType]
@@ -131,17 +129,16 @@ final class Logic: ObservableObject {
         canUndo = true
         guard numberOfTiles > 0 else { return [] }
         var data = grids
-        if data.count > 24 {
-            data[3].options = [TileType.left]
-        }
-        //
+        //start off 
+        data[0].options = [TileType.left]
         
         if let least = indexOfCollaspible(data) {
             if let pick = data[least].options.randomElement() {
                 data[least].options = [pick]
             }
+            updateAdjacentTiles(data: &data, i: least)
         }
-        data = update(gridDatas: data)
+        data = updateGrids(gridDatas: data)
         return data
     }
     
@@ -155,28 +152,34 @@ final class Logic: ObservableObject {
         return randomId
     }
     
-    private func update(gridDatas: [GridData]) -> [GridData] {
+    private func updateGrids(gridDatas: [GridData]) -> [GridData] {
         guard !gridDatas.isEmpty else { return [] }
             var data = gridDatas
             for i in data.indices {
-                updateAdjacentTile(data: &data, i: i)
+                updateAdjacentTiles(data: &data, i: i)
             }
         return data
     }
     
-    private func updateAdjacentTile(data: inout [GridData], i: Int) {
+    private func updateAdjacentTiles(data: inout [GridData], i: Int) {
         for direction in Direction.allCases {
+            // gets index of either the tile above, below, left or right
             if let j = direction.relativeIndex(i, columns: numberOfColumns){
+                // gets option for directional side of current tile
                 let dirOptions = data[i].options.map { option in
                     return option.rule.getRule(direction)
                 }
                 let flat = Set(dirOptions.joined())
+                // options of tile comparing to (j tile)
                 let jSet = Set(data[j].options)
                 // if options are the same, no need to update
                 if flat == jSet { return }
                 
+                //otherwise set comparison tiles options to the limited set
                 let newOptions = Array(flat.intersection(jSet))
-                data[j].options = newOptions
+                if newOptions.count > 0 {
+                    data[j].options = newOptions
+                }
             }
         }
     }
@@ -187,7 +190,6 @@ final class Logic: ObservableObject {
         let directionOptions = options.map { option in
             switch direction {
             case .left:
-                
                 return option.rule.leftSide
             case .right:
                 return option.rule.rightSide
@@ -202,6 +204,7 @@ final class Logic: ObservableObject {
     
     
 }
+
 // MARK: Public Functions
 extension Logic {
     func reload() {

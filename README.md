@@ -5,3 +5,6 @@ After watching a video by [the CodingTrain on youtube about Wave Function Collap
 # Organization
 I decided not to use MVVM exactly.  Instead I abstracted the logic in to a Logic class that is passed around as an enviromental object.
 
+# Technical Notes
+I've never used Grid before so that was also an interesting challenge for me and it seemed like a good fit for this project.
+
