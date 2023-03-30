@@ -5,100 +5,13 @@
 //  Created by David Rynn on 3/25/23.
 //
 
+import AVFoundation
 import Foundation
 import SwiftUI
 
-enum Direction: CaseIterable {
-    
-    case left, right, up, down
-    
-    func relativeIndex(_ i: Int, columns: Int) -> Int? {
-        let roundedRowNumber = (i / columns)
-        let beginningOfRow = roundedRowNumber * columns
-        let endOfRow = beginningOfRow + columns - 1
-        switch self {
-        case .down:
-            let j = columns + i
-            return j < columns*columns ? j : nil
-        case .left:
-            let j = i - 1
-            return j >= beginningOfRow ? j : nil
-        case .right:
-            let j = i + 1
-            return j <= endOfRow ? j : nil
-        case .up:
-            let j = i - columns
-            return j > 0 ? j : nil
-        }
-    }
-
-}
-
-enum TileType: Int, CaseIterable {
-    case blank = 0
-    case up = 1
-    case right = 2
-    case down = 3
-    case left = 4
-    
-    var rule: SideRule<TileType> {
-        switch self {
-            
-        case .blank:
-            return SideRule(upSide: [.blank, .up],
-                            rightSide: [.blank, .right],
-                            downSide: [.blank, .down],
-                            leftSide: [.blank, .left])
-        case .up:
-            return SideRule(upSide: [.right, .down, .left],
-                            rightSide:    [.up, .down, .left],
-                            downSide: [.blank, .down],
-                            leftSide: [.up, .right, .down]
-            )
-        case .right:
-            return SideRule(upSide: [.right, .down, .left],
-                            rightSide: [.up, .down, .left],
-                            downSide: [.up, .right, .left],
-                            leftSide: [.blank, .left]
-            )
-        case .down:
-            return SideRule(upSide: [.blank, .up],
-                            rightSide: [.up, .down, .left],
-                            downSide: [.up, .right, .left],
-                            leftSide: [.up, .right, .down]
-            )
-        case .left:
-            return SideRule(upSide: [.right, .down, .left],
-                            rightSide: [.blank, .right],
-                            downSide: [.up, .right, .left],
-                            leftSide: [.up, .right, .down]
-            )
-        }
-    }
-}
-
-//TODO: Make more generic, potentially just an array, so it could have variable amount of sides
-// Is there a way of setting the size of an array
-struct SideRule<T: Equatable>: Equatable {
-    let upSide: [T]
-    let rightSide: [T]
-    let downSide: [T]
-    let leftSide: [T]
-    
-    func getRule(_ direction: Direction) -> [T] {
-        switch direction {
-            
-        case .down: return downSide
-        case .left: return leftSide
-        case .right: return rightSide
-        case .up: return upSide
-        }
-    }
-}
-
 final class Logic: ObservableObject {
     var numberOfColumns: Int
-    
+    var mostOptions = 0
     private var previous: [GridData] = []
     var canUndo: Bool = false
     
@@ -122,7 +35,10 @@ final class Logic: ObservableObject {
     }
     
     private func firstLoad() {
+        guard numberOfTiles > 0 else { return }
         grids = (0..<numberOfTiles).compactMap({ GridData(id: $0) })
+        let random: Int = (0...4).randomElement() ?? 0
+        grids[0].options = [TileType(rawValue: random) ?? .left]
         grids = load()
     }
     
@@ -132,15 +48,14 @@ final class Logic: ObservableObject {
         guard numberOfTiles > 0 else { return [] }
         var data = grids
         //start off
-        data[0].options = [TileType.left]
-        
+        updateGrids(data: &data)
         if let least = indexOfCollaspible(data) {
             if let pick = data[least].options.randomElement() {
                 data[least].options = [pick]
+                updateAdjacentTiles(data: &data, i: least)
+                updateGrids(data: &data)
             }
-            updateAdjacentTiles(data: &data, i: least)
         }
-        data = updateGrids(gridDatas: data)
         return data
     }
     
@@ -154,13 +69,11 @@ final class Logic: ObservableObject {
         return randomId
     }
     
-    private func updateGrids(gridDatas: [GridData]) -> [GridData] {
-        guard !gridDatas.isEmpty else { return [] }
-            var data = gridDatas
+    private func updateGrids(data: inout [GridData]) {
+        guard !data.isEmpty else { return }
             for i in data.indices {
                 updateAdjacentTiles(data: &data, i: i)
             }
-        return data
     }
     
     private func updateAdjacentTiles(data: inout [GridData], i: Int) {
@@ -174,13 +87,14 @@ final class Logic: ObservableObject {
                 let flat = Set(dirOptions.joined())
                 // options of tile comparing to (j tile)
                 let jSet = Set(data[j].options)
-                // if options are the same, no need to update
-                if flat == jSet { return }
-                
+                // if options are the same or adj is collapsed, no need to update
+                if flat == jSet || jSet.count == 1 { continue }
                 //otherwise set comparison tiles options to the limited set
                 let newOptions = Array(flat.intersection(jSet))
+                // count should never be 0
                 if newOptions.count > 0 {
                     data[j].options = newOptions
+                    if mostOptions <= newOptions.count { mostOptions = newOptions.count }
                 }
             }
         }
@@ -210,16 +124,26 @@ final class Logic: ObservableObject {
 // MARK: Public Functions
 extension Logic {
     func reload() {
+        mostOptions = 0
         self.grids = load()
     }
     
     func reset() {
+        mostOptions = 0
         self.firstLoad()
     }
     
     func undo() {
         canUndo = false
         self.grids = previous
+    }
+    
+    @MainActor
+    func solve() async {
+        while mostOptions > 1 {
+            try? await Task.sleep(nanoseconds: 80_000_000)
+            self.reload()
+        }
     }
 }
 

@@ -18,6 +18,8 @@ struct GridView: View {
     }
     var body: some View {
         VStack {
+            Text("largest options: \(logic.mostOptions)")
+                .padding()
             Grid(alignment: .center, horizontalSpacing: 1.0, verticalSpacing: 1.0) {
                 ForEach(0..<logic.numberOfColumns, id: \.self){ i in
                     GridRow {
@@ -43,29 +45,38 @@ struct GridView: View {
                 }
             }
             .padding(.horizontal)
-            HStack {
-                Button {
-                    logic.reload()
-                } label: {
-                    Text("Iterate")
-                }
-                .padding()
-                Button {
-                    logic.reset()
-                } label: {
-                    Text("Reset")
-                }
-                .padding()
-                if logic.canUndo {
+            VStack {
+                HStack {
                     Button {
-                        logic.undo()
+                        logic.reload()
                     } label: {
-                        Text("Undo")
+                        Text("Iterate")
                     }
                     .padding()
+                    Button {
+                        logic.reset()
+                    } label: {
+                        Text("Reset")
+                    }
+                    .padding()
+                    if logic.canUndo {
+                        Button {
+                            logic.undo()
+                        } label: {
+                            Text("Undo")
+                        }
+                        .padding()
+                    }
                 }
-            }
+                Button {
+                    Task {
+                        await logic.solve()
+                    }
+                } label: {
+                    Text("Solve")
+                }
 
+            }
         }
     }
 }
