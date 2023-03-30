@@ -9,6 +9,7 @@ import SwiftUI
 
 struct GridView: View {
     @EnvironmentObject var logic: Logic
+    @State var tapable: Bool = true
     var columns: [GridItem] {
         var array: [GridItem] = []
         for _ in 0..<logic.numberOfColumns {
@@ -38,6 +39,11 @@ struct GridView: View {
                                         .frame(width: 40, height: 40)
                                     Text(String(grid.options.count))
                                         .foregroundColor(.green)
+                                }
+                                .onTapGesture {
+                                    if tapable {
+                                        logic.didTap(index: adj)
+                                    }
                                 }
                             }
                         }

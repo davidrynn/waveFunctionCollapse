@@ -9,6 +9,8 @@ import AVFoundation
 import Foundation
 import SwiftUI
 
+// TODO: - First tile doesn't propagate correctly
+
 final class Logic: ObservableObject {
     var numberOfColumns: Int
     var mostOptions = 0
@@ -37,8 +39,6 @@ final class Logic: ObservableObject {
     private func firstLoad() {
         guard numberOfTiles > 0 else { return }
         grids = (0..<numberOfTiles).compactMap({ GridData(id: $0) })
-        let random: Int = (0...4).randomElement() ?? 0
-        grids[0].options = [TileType(rawValue: random) ?? .left]
         grids = load()
     }
     
@@ -140,10 +140,17 @@ extension Logic {
     
     @MainActor
     func solve() async {
+        mostOptions = 2 // arbitrary number over 1
         while mostOptions > 1 {
             try? await Task.sleep(nanoseconds: 80_000_000)
             self.reload()
         }
+    }
+    
+    func didTap(index: Int) {
+        guard index < grids.count else { return }
+        let random: Int = (0...grids[index].options.count).randomElement() ?? 0
+        grids[index].options = [TileType(rawValue: random) ?? .left]
     }
 }
 
